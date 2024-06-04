@@ -1,0 +1,7 @@
+base   questionaire
+author Andreas Gohr
+email  dokuwiki@cosmocode.de
+date   2024-05-23
+name   questionaire plugin
+desc   Create simple questionaires and collect data from your users
+url    https://www.dokuwiki.org/plugin:questionaire
