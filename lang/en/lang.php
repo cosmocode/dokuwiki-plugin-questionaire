@@ -6,7 +6,6 @@
  * @author Andreas Gohr <dokuwiki@cosmocode.de>
  */
 
-// custom language strings for the plugin
 $lang['invalidyaml'] = 'The questionaire\s YAML definition is invalid and needs to be fixed.';
 
 $lang['nosqlite'] = 'Couldn\'t load sqlite plugin for the questionaire plugin.';
