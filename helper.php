@@ -28,7 +28,7 @@ class helper_plugin_questionaire extends Plugin
             } catch (\Exception $exception) {
                 if (defined('DOKU_UNITTEST')) throw new \RuntimeException('Could not load SQLite', 0, $exception);
                 ErrorHandler::logException($exception);
-                msg('Couldn\'t load sqlite.', -1);
+                msg($this->getLang('nosqlite'), -1);
                 return null;
             }
         }
@@ -84,13 +84,20 @@ class helper_plugin_questionaire extends Plugin
         $db = $this->getDB();
 
         $record = $db->queryRecord('SELECT * FROM questionaires WHERE page = ?', $page);
-        if (!$record) throw new \Exception('Questionaire not enabled');
+        if (!$record) throw new \Exception($this->getLang('inactive'));
 
         $record['deactivated_on'] = time();
         $record['deactivated_by'] = $user;
         $db->saveRecord('questionaires', $record);
     }
 
+    /**
+     * Has the given user answered the questionaire for the given page?
+     *
+     * @param string $page The page of the questionaire
+     * @param string $user The user to check
+     * @return bool
+     */
     public function hasUserAnswered($page, $user)
     {
         $db = $this->getDB();
@@ -100,16 +107,27 @@ class helper_plugin_questionaire extends Plugin
         return $db->queryValue($sql, $page, $user) > 0;
     }
 
+    /**
+     * How many users have answered this questionaire yet?
+     *
+     * @param string $page The page of the questionaire
+     * @return int
+     */
     public function numberOfResponses($page)
     {
         $db = $this->getDB();
         if (!$db) return 0;
 
         $sql = 'SELECT COUNT(DISTINCT answered_by) FROM answers WHERE page = ?';
-        return $db->queryValue($sql, $page);
+        return (int)$db->queryValue($sql, $page);
     }
 
-
+    /**
+     * Does the given questionaire accept answers currently?
+     *
+     * @param string $page The page of the questionaire
+     * @return bool
+     */
     public function isActive($page)
     {
         $record = $this->getQuestionaire($page);

@@ -52,7 +52,7 @@ class syntax_plugin_questionaire extends SyntaxPlugin
         // FIXME parse YAML in handler
         $ary = \dokuwiki\plugin\questionaire\miniYAML::Load($data['yaml']);
         if ($ary === null) {
-            $renderer->doc .= '<p>Invalid YAML</p>';
+            $renderer->doc .= '<p>' . $this->getLang('invalidyaml') . '</p>';
             return true;
         }
 
@@ -70,7 +70,7 @@ class syntax_plugin_questionaire extends SyntaxPlugin
             if ($INPUT->has('questionaire')) {
                 $this->validateInput($ary, $INPUT->arr('questionaire'));
                 $this->saveInput($ary, $INPUT->arr('questionaire'));
-                msg('Thank you for your input', 1);
+                msg($this->getLang('success'), 1);
             }
             if ($INPUT->has('questionaire-admin') && $INFO['isadmin']) {
                 switch ($INPUT->str('questionaire-admin')) {
@@ -92,9 +92,9 @@ class syntax_plugin_questionaire extends SyntaxPlugin
 
         $renderer->doc .= '<div class="plugin_questionaire">';
         if ($ACT === 'show' && $helper->hasUserAnswered($ID, $user)) {
-            $renderer->doc .= '<p class="answered">You already answered this questionaire</p>';
+            $renderer->doc .= '<p class="answered">' . $this->getLang('answered') . '</p>';
         } elseif ($ACT === 'show' && $quest && $quest['deactivated_on']) {
-            $renderer->doc .= '<p class="deactivated">This questionaire is no longer active</p>';
+            $renderer->doc .= '<p class="deactivated">' . $this->getLang('deactivated') . '</p>';
         } else {
             $renderer->doc .= $this->addSubmitButton($this->createForm($ary), $quest)->toHTML();
         }
@@ -159,11 +159,11 @@ class syntax_plugin_questionaire extends SyntaxPlugin
         global $INPUT;
         if ($ACT !== 'show') return $form;
         if (!$quest) {
-            $form->addHTML('<p class="nosubmit">Questionaire is not active, yet</p>');
+            $form->addHTML('<p class="nosubmit">' . $this->getLang('inactive') . '</p>');
         } elseif ($INPUT->server->str('REMOTE_USER') == '') {
-            $form->addHTML('<p class="nosubmit">You need to be logged in to submit the questionaire</p>');
+            $form->addHTML('<p class="nosubmit">' . $this->getLang('notloggedin') . '</p>');
         } else {
-            $form->addButton('questionaire[submit]', 'Submit');
+            $form->addButton('questionaire[submit]', $this->getLang('submit'));
         }
 
         return $form;
@@ -179,23 +179,26 @@ class syntax_plugin_questionaire extends SyntaxPlugin
         $helper = plugin_load('helper', 'questionaire');
 
         $form = new \dokuwiki\Form\Form(['method' => 'post']);
-        $form->addFieldsetOpen('Administration');
+        $form->addFieldsetOpen($this->getLang('administration'));
 
         if ($quest) {
             $form->addHTML(
                 '<p>' .
-                sprintf('Responses: %s', $helper->numberOfResponses($quest['page'])) .
+                sprintf($this->getLang('responses'), $helper->numberOfResponses($quest['page'])) .
                 '</p>'
             );
 
             if ($quest['deactivated_on']) {
-                $form->addButton('questionaire-admin', 'Enable')->val('enable');
+                $form->addButton('questionaire-admin', $this->getLang('enable'))->val('enable');
             } else {
-                $form->addButton('questionaire-admin', 'Disable')->val('disable');
+                $form->addButton('questionaire-admin', $this->getLang('disable'))->val('disable');
             }
-            $form->addButton('questionaire-admin', 'Download Data')->val('csv');    // needs to be handled by action plugin
+
+            $url = DOKU_BASE . 'lib/plugins/questionaire/dl.php?id=' . $quest['page'];
+
+            $form->addHTML('<a href="'.$url.'" class="button">'.$this->getLang('download').'</a>');
         } else {
-            $form->addButton('questionaire-admin', 'Enable')->val('enable');
+            $form->addButton('questionaire-admin', $this->getLang('enable'))->val('enable');
         }
         $form->addFieldsetClose();
 
@@ -213,7 +216,7 @@ class syntax_plugin_questionaire extends SyntaxPlugin
      */
     protected function validateInput($data, $input)
     {
-        $validationError = 'Please answer all questions';
+        $validationError = $this->getLang('validationerror');
 
         foreach (array_keys($data) as $question) {
             if (!isset($input[$question])) {
@@ -251,14 +254,14 @@ class syntax_plugin_questionaire extends SyntaxPlugin
         /** @var helper_plugin_questionaire $helper */
         $helper = plugin_load('helper', 'questionaire');
         $db = $helper->getDB();
-        if (!$db) throw new \Exception('Database not available');
+        if (!$db) throw new \Exception($this->getLang('nodb'));
 
         if (!$helper->isActive($ID)) {
-            throw new \Exception('Questionaire is not active');
+            throw new \Exception($this->getLang('inactive'));
         }
 
         if ($helper->hasUserAnswered($ID, $record['answered_by'])) {
-            throw new \Exception('You already answered the questionaire');
+            throw new \Exception($this->getLang('answered'));
         }
 
         try {
@@ -280,24 +283,7 @@ class syntax_plugin_questionaire extends SyntaxPlugin
             $db->getPdo()->commit();
         } catch (\Exception $e) {
             $db->getPdo()->rollBack();
-            throw new \Exception('Error saving data', 0, $e);
+            throw new \Exception($this->getLang('saveerror'), 0, $e);
         }
-    }
-
-
-    protected function isQuestionaireActive()
-    {
-        global $ID;
-
-        /** @var helper_plugin_questionaire $helper */
-        $helper = plugin_load('helper', 'questionaire');
-        $db = $helper->getDB();
-        if (!$db) return true;
-
-        $record = $db->queryRecord('SELECT * FROM questionaires WHERE page = ?', [$ID]);
-        if (!$record) return true;
-
-
-        return true;
     }
 }
