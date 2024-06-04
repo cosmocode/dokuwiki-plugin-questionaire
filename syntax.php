@@ -1,6 +1,8 @@
 <?php
 
 use dokuwiki\Extension\SyntaxPlugin;
+use dokuwiki\Form\Form;
+use dokuwiki\plugin\questionaire\miniYAML;
 
 /**
  * DokuWiki Plugin questionaire (Syntax Component)
@@ -33,12 +35,7 @@ class syntax_plugin_questionaire extends SyntaxPlugin
     public function handle($match, $state, $pos, Doku_Handler $handler)
     {
         $yaml = substr($match, 14, -15);
-
-        $data = [
-            'yaml' => $yaml,
-        ];
-
-        return $data;
+        return miniYAML::Load($yaml);
     }
 
     /** @inheritDoc */
@@ -48,18 +45,18 @@ class syntax_plugin_questionaire extends SyntaxPlugin
             return false;
         }
 
-        $renderer->nocache();
-        // FIXME parse YAML in handler
-        $ary = \dokuwiki\plugin\questionaire\miniYAML::Load($data['yaml']);
-        if ($ary === null) {
-            $renderer->doc .= '<p>' . $this->getLang('invalidyaml') . '</p>';
-            return true;
-        }
 
         global $INPUT;
         global $ID;
         global $INFO;
         global $ACT;
+
+        $renderer->nocache();
+
+        if ($data === null) {
+            msg($this->getLang('invalidyaml'), -1);
+            return true;
+        }
 
         /** @var helper_plugin_questionaire $helper */
         $helper = plugin_load('helper', 'questionaire');
@@ -68,8 +65,8 @@ class syntax_plugin_questionaire extends SyntaxPlugin
         // handle the inputs
         try {
             if ($INPUT->has('questionaire')) {
-                $this->validateInput($ary, $INPUT->arr('questionaire'));
-                $this->saveInput($ary, $INPUT->arr('questionaire'));
+                $this->validateInput($data, $INPUT->arr('questionaire'));
+                $this->saveInput($data, $INPUT->arr('questionaire'));
                 msg($this->getLang('success'), 1);
             }
             if ($INPUT->has('questionaire-admin') && $INFO['isadmin']) {
@@ -82,12 +79,10 @@ class syntax_plugin_questionaire extends SyntaxPlugin
                         break;
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             msg($e->getMessage(), -1);
         }
 
-
-        // FIXME check if form should be shown and submittable
         $quest = $helper->getQuestionaire($ID);
 
         $renderer->doc .= '<div class="plugin_questionaire">';
@@ -96,7 +91,7 @@ class syntax_plugin_questionaire extends SyntaxPlugin
         } elseif ($ACT === 'show' && $quest && $quest['deactivated_on']) {
             $renderer->doc .= '<p class="deactivated">' . $this->getLang('deactivated') . '</p>';
         } else {
-            $renderer->doc .= $this->addSubmitButton($this->createForm($ary), $quest)->toHTML();
+            $renderer->doc .= $this->addSubmitButton($this->createForm($data), $quest)->toHTML();
         }
         $renderer->doc .= $this->adminPanel($quest)->toHTML();
         $renderer->doc .= '</div>';
@@ -108,14 +103,11 @@ class syntax_plugin_questionaire extends SyntaxPlugin
      * Create a DokuWiki Form for the questionaire
      *
      * @param array $data The questionaire configuration
-     * @return \dokuwiki\Form\Form
+     * @return Form
      */
     protected function createForm($data)
     {
-        global $ACT;
-        global $INPUT;
-
-        $form = new \dokuwiki\Form\Form(['method' => 'post']);
+        $form = new Form(['method' => 'post']);
 
         foreach ($data as $question => $q) {
             $form->addTagOpen('div')->addClass('question');
@@ -149,9 +141,9 @@ class syntax_plugin_questionaire extends SyntaxPlugin
     /**
      * Decide if the submit button should be shown and add it to the form
      *
-     * @param \dokuwiki\Form\Form $form
+     * @param Form $form
      * @param array $quest The questionaire data
-     * @return \dokuwiki\Form\Form
+     * @return Form
      */
     protected function addSubmitButton($form, $quest)
     {
@@ -170,15 +162,14 @@ class syntax_plugin_questionaire extends SyntaxPlugin
     }
 
     /**
-     * @return \dokuwiki\Form\Form
-     * @todo show buttons depending on state
+     * @return Form
      */
     protected function adminPanel($quest)
     {
         /** @var helper_plugin_questionaire $helper */
         $helper = plugin_load('helper', 'questionaire');
 
-        $form = new \dokuwiki\Form\Form(['method' => 'post']);
+        $form = new Form(['method' => 'post']);
         $form->addFieldsetOpen($this->getLang('administration'));
 
         if ($quest) {
@@ -196,7 +187,7 @@ class syntax_plugin_questionaire extends SyntaxPlugin
 
             $url = DOKU_BASE . 'lib/plugins/questionaire/dl.php?id=' . $quest['page'];
 
-            $form->addHTML('<a href="'.$url.'" class="button">'.$this->getLang('download').'</a>');
+            $form->addHTML('<a href="' . $url . '" class="button">' . $this->getLang('download') . '</a>');
         } else {
             $form->addButton('questionaire-admin', $this->getLang('enable'))->val('enable');
         }
@@ -220,15 +211,15 @@ class syntax_plugin_questionaire extends SyntaxPlugin
 
         foreach (array_keys($data) as $question) {
             if (!isset($input[$question])) {
-                throw new \Exception($validationError);
+                throw new Exception($validationError);
             }
 
             if (is_array($input[$question])) {
-                if (count(array_filter(array_map('trim', $input[$question]))) === 0) {
-                    throw new \Exception($validationError);
+                if (array_filter(array_map('trim', $input[$question])) === []) {
+                    throw new Exception($validationError);
                 }
-            } else if (trim($input[$question]) === '') {
-                throw new \Exception($validationError);
+            } elseif (trim($input[$question]) === '') {
+                throw new Exception($validationError);
             }
         }
     }
