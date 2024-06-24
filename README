@@ -1,12 +1,12 @@
-questionaire plugin for DokuWiki
+questionnaire plugin for DokuWiki
 
-Create simple questionaires and collect data from your users
+Create simple questionnaires and collect data from your users
 
 All documentation for this plugin can be found at
-https://www.dokuwiki.org/plugin:questionaire
+https://www.dokuwiki.org/plugin:questionnaire
 
 If you install this plugin manually, make sure it is installed in
-lib/plugins/questionaire/ - if the folder is called different it
+lib/plugins/questionnaire/ - if the folder is called different it
 will not work!
 
 Please refer to http://www.dokuwiki.org/extensions for additional info

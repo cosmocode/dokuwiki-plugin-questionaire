@@ -5,12 +5,12 @@ use dokuwiki\Extension\Plugin;
 use dokuwiki\plugin\sqlite\SQLiteDB;
 
 /**
- * DokuWiki Plugin questionaire (Helper Component)
+ * DokuWiki Plugin questionnaire (Helper Component)
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author Andreas Gohr <dokuwiki@cosmocode.de>
  */
-class helper_plugin_questionaire extends Plugin
+class helper_plugin_questionnaire extends Plugin
 {
     protected $db;
 
@@ -23,7 +23,7 @@ class helper_plugin_questionaire extends Plugin
     {
         if ($this->db === null) {
             try {
-                $this->db = new SQLiteDB('questionaire', DOKU_PLUGIN . 'questionaire/db/');
+                $this->db = new SQLiteDB('questionnaire', DOKU_PLUGIN . 'questionnaire/db/');
                 $this->db->getPdo()->exec('PRAGMA foreign_keys = ON');
             } catch (\Exception $exception) {
                 if (defined('DOKU_UNITTEST')) throw new \RuntimeException('Could not load SQLite', 0, $exception);
@@ -36,28 +36,28 @@ class helper_plugin_questionaire extends Plugin
     }
 
     /**
-     * Get the questionaire meta data
+     * Get the questionnaire meta data
      *
-     * @param string $page The page to get the questionaire for
-     * @return array|null Null if the questionaire has not been enabled yet
+     * @param string $page The page to get the questionnaire for
+     * @return array|null Null if the questionnaire has not been enabled yet
      */
-    public function getQuestionaire($page)
+    public function getQuestionnaire($page)
     {
         $db = $this->getDB();
         if (!$db) return null;
 
-        $sql = 'SELECT * FROM questionaires WHERE page = ?';
+        $sql = 'SELECT * FROM questionnaires WHERE page = ?';
         return $db->queryRecord($sql, $page);
     }
 
     /**
-     * Activate the questionaire for a page
+     * Activate the questionnaire for a page
      *
-     * @param string $page The page to enable the questionaire for
-     * @param string $user The user enabling the questionaire
-     * @throws Exception if the questionaire is already enabled
+     * @param string $page The page to enable the questionnaire for
+     * @param string $user The user enabling the questionnaire
+     * @throws Exception if the questionnaire is already enabled
      */
-    public function activateQuestionaire($page, $user)
+    public function activateQuestionnaire($page, $user)
     {
         $db = $this->getDB();
 
@@ -69,32 +69,32 @@ class helper_plugin_questionaire extends Plugin
             'deactivated_by' => '',
         ];
 
-        $db->saveRecord('questionaires', $record);
+        $db->saveRecord('questionnaires', $record);
     }
 
     /**
-     * Deactivate the questionaire for a page
+     * Deactivate the questionnaire for a page
      *
-     * @param string $page The page to disable the questionaire for
-     * @param string $user The user disabling the questionaire
-     * @throws Exception if the questionaire is not enabled
+     * @param string $page The page to disable the questionnaire for
+     * @param string $user The user disabling the questionnaire
+     * @throws Exception if the questionnaire is not enabled
      */
-    public function deactivateQuestionaire($page, $user)
+    public function deactivateQuestionnaire($page, $user)
     {
         $db = $this->getDB();
 
-        $record = $db->queryRecord('SELECT * FROM questionaires WHERE page = ?', $page);
+        $record = $db->queryRecord('SELECT * FROM questionnaires WHERE page = ?', $page);
         if (!$record) throw new \Exception($this->getLang('inactive'));
 
         $record['deactivated_on'] = time();
         $record['deactivated_by'] = $user;
-        $db->saveRecord('questionaires', $record);
+        $db->saveRecord('questionnaires', $record);
     }
 
     /**
-     * Has the given user answered the questionaire for the given page?
+     * Has the given user answered the questionnaire for the given page?
      *
-     * @param string $page The page of the questionaire
+     * @param string $page The page of the questionnaire
      * @param string $user The user to check
      * @return bool
      */
@@ -108,9 +108,9 @@ class helper_plugin_questionaire extends Plugin
     }
 
     /**
-     * How many users have answered this questionaire yet?
+     * How many users have answered this questionnaire yet?
      *
-     * @param string $page The page of the questionaire
+     * @param string $page The page of the questionnaire
      * @return int
      */
     public function numberOfResponses($page)
@@ -123,14 +123,14 @@ class helper_plugin_questionaire extends Plugin
     }
 
     /**
-     * Does the given questionaire accept answers currently?
+     * Does the given questionnaire accept answers currently?
      *
-     * @param string $page The page of the questionaire
+     * @param string $page The page of the questionnaire
      * @return bool
      */
     public function isActive($page)
     {
-        $record = $this->getQuestionaire($page);
+        $record = $this->getQuestionnaire($page);
         if (!$record) return false;
         return empty($record['deactivated_on']);
     }

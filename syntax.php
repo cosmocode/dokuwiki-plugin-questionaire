@@ -2,15 +2,15 @@
 
 use dokuwiki\Extension\SyntaxPlugin;
 use dokuwiki\Form\Form;
-use dokuwiki\plugin\questionaire\miniYAML;
+use dokuwiki\plugin\questionnaire\miniYAML;
 
 /**
- * DokuWiki Plugin questionaire (Syntax Component)
+ * DokuWiki Plugin questionnaire (Syntax Component)
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author Andreas Gohr <dokuwiki@cosmocode.de>
  */
-class syntax_plugin_questionaire extends SyntaxPlugin
+class syntax_plugin_questionnaire extends SyntaxPlugin
 {
     /** @inheritDoc */
     public function getType()
@@ -27,14 +27,14 @@ class syntax_plugin_questionaire extends SyntaxPlugin
     /** @inheritDoc */
     public function connectTo($mode)
     {
-        $this->Lexer->addSpecialPattern('<questionaire>.*?(?:</questionaire>)', $mode, 'plugin_questionaire');
+        $this->Lexer->addSpecialPattern('<questionnaire>.*?(?:</questionnaire>)', $mode, 'plugin_questionnaire');
     }
 
 
     /** @inheritDoc */
     public function handle($match, $state, $pos, Doku_Handler $handler)
     {
-        $yaml = substr($match, 14, -15);
+        $yaml = substr($match, 15, -16);
         return miniYAML::Load($yaml);
     }
 
@@ -58,25 +58,25 @@ class syntax_plugin_questionaire extends SyntaxPlugin
             return true;
         }
 
-        /** @var helper_plugin_questionaire $helper */
-        $helper = plugin_load('helper', 'questionaire');
+        /** @var helper_plugin_questionnaire $helper */
+        $helper = plugin_load('helper', 'questionnaire');
         $user = $INPUT->server->str('REMOTE_USER');
 
         // handle the inputs
         if($user) {
             try {
-                if ($INPUT->has('questionaire')) {
-                    $this->validateInput($data, $INPUT->arr('questionaire'));
-                    $this->saveInput($data, $INPUT->arr('questionaire'));
+                if ($INPUT->has('questionnaire')) {
+                    $this->validateInput($data, $INPUT->arr('questionnaire'));
+                    $this->saveInput($data, $INPUT->arr('questionnaire'));
                     msg($this->getLang('success'), 1);
                 }
-                if ($INPUT->has('questionaire-admin') && $INFO['isadmin']) {
-                    switch ($INPUT->str('questionaire-admin')) {
+                if ($INPUT->has('questionnaire-admin') && $INFO['isadmin']) {
+                    switch ($INPUT->str('questionnaire-admin')) {
                         case 'enable':
-                            $helper->activateQuestionaire($ID, $user);
+                            $helper->activateQuestionnaire($ID, $user);
                             break;
                         case 'disable':
-                            $helper->deactivateQuestionaire($ID, $user);
+                            $helper->deactivateQuestionnaire($ID, $user);
                             break;
                     }
                 }
@@ -85,9 +85,9 @@ class syntax_plugin_questionaire extends SyntaxPlugin
             }
         }
 
-        $quest = $helper->getQuestionaire($ID);
+        $quest = $helper->getQuestionnaire($ID);
 
-        $renderer->doc .= '<div class="plugin_questionaire">';
+        $renderer->doc .= '<div class="plugin_questionnaire">';
         if ($ACT === 'show' && $helper->hasUserAnswered($ID, $user)) {
             $renderer->doc .= '<p class="answered">' . $this->getLang('answered') . '</p>';
         } elseif ($ACT === 'show' && $quest && $quest['deactivated_on']) {
@@ -104,9 +104,9 @@ class syntax_plugin_questionaire extends SyntaxPlugin
     }
 
     /**
-     * Create a DokuWiki Form for the questionaire
+     * Create a DokuWiki Form for the questionnaire
      *
-     * @param array $data The questionaire configuration
+     * @param array $data The questionnaire configuration
      * @return Form
      */
     protected function createForm($data)
@@ -122,17 +122,17 @@ class syntax_plugin_questionaire extends SyntaxPlugin
             switch ($q['t']) {
                 case 'multi':
                     foreach ($q['a'] as $num => $answer) {
-                        $form->addCheckbox('questionaire[' . $question . '][' . $num . ']', $answer)->val($answer);
+                        $form->addCheckbox('questionnaire[' . $question . '][' . $num . ']', $answer)->val($answer);
                     }
                     break;
                 case 'single':
                     foreach ($q['a'] as $answer) {
-                        $form->addRadioButton('questionaire[' . $question . ']', $answer)->val($answer);
+                        $form->addRadioButton('questionnaire[' . $question . ']', $answer)->val($answer);
                     }
                     break;
                 case 'text':
                 default:
-                    $form->addTextarea('questionaire[' . $question . ']');
+                    $form->addTextarea('questionnaire[' . $question . ']');
                     break;
             }
             $form->addTagClose('div');
@@ -146,7 +146,7 @@ class syntax_plugin_questionaire extends SyntaxPlugin
      * Decide if the submit button should be shown and add it to the form
      *
      * @param Form $form
-     * @param array $quest The questionaire data
+     * @param array $quest The questionnaire data
      * @return Form
      */
     protected function addSubmitButton($form, $quest)
@@ -159,7 +159,7 @@ class syntax_plugin_questionaire extends SyntaxPlugin
         } elseif ($INPUT->server->str('REMOTE_USER') == '') {
             $form->addHTML('<p class="nosubmit">' . $this->getLang('notloggedin') . '</p>');
         } else {
-            $form->addButton('questionaire[submit]', $this->getLang('submit'));
+            $form->addButton('questionnaire[submit]', $this->getLang('submit'));
         }
 
         return $form;
@@ -170,8 +170,8 @@ class syntax_plugin_questionaire extends SyntaxPlugin
      */
     protected function adminPanel($quest)
     {
-        /** @var helper_plugin_questionaire $helper */
-        $helper = plugin_load('helper', 'questionaire');
+        /** @var helper_plugin_questionnaire $helper */
+        $helper = plugin_load('helper', 'questionnaire');
 
         $form = new Form(['method' => 'post']);
         $form->addFieldsetOpen($this->getLang('administration'));
@@ -184,16 +184,16 @@ class syntax_plugin_questionaire extends SyntaxPlugin
             );
 
             if ($quest['deactivated_on']) {
-                $form->addButton('questionaire-admin', $this->getLang('enable'))->val('enable');
+                $form->addButton('questionnaire-admin', $this->getLang('enable'))->val('enable');
             } else {
-                $form->addButton('questionaire-admin', $this->getLang('disable'))->val('disable');
+                $form->addButton('questionnaire-admin', $this->getLang('disable'))->val('disable');
             }
 
-            $url = DOKU_BASE . 'lib/plugins/questionaire/dl.php?id=' . $quest['page'];
+            $url = DOKU_BASE . 'lib/plugins/questionnaire/dl.php?id=' . $quest['page'];
 
             $form->addHTML('<a href="' . $url . '" class="button">' . $this->getLang('download') . '</a>');
         } else {
-            $form->addButton('questionaire-admin', $this->getLang('enable'))->val('enable');
+            $form->addButton('questionnaire-admin', $this->getLang('enable'))->val('enable');
         }
         $form->addFieldsetClose();
 
@@ -204,8 +204,8 @@ class syntax_plugin_questionaire extends SyntaxPlugin
     /**
      * Validate the input data
      *
-     * @param array $data The questionaire configuration
-     * @param array $input The questionaire input
+     * @param array $data The questionnaire configuration
+     * @param array $input The questionnaire input
      * @throws Exception
      * @todo could check if received data is matching the available answers
      */
@@ -231,8 +231,8 @@ class syntax_plugin_questionaire extends SyntaxPlugin
     /**
      * Save the input data
      *
-     * @param array $data The questionaire configuration
-     * @param array $input The questionaire input
+     * @param array $data The questionnaire configuration
+     * @param array $input The questionnaire input
      * @throws Exception
      */
     protected function saveInput($data, $input)
@@ -246,8 +246,8 @@ class syntax_plugin_questionaire extends SyntaxPlugin
             'answered_by' => $INPUT->server->str('REMOTE_USER'),
         ];
 
-        /** @var helper_plugin_questionaire $helper */
-        $helper = plugin_load('helper', 'questionaire');
+        /** @var helper_plugin_questionnaire $helper */
+        $helper = plugin_load('helper', 'questionnaire');
         $db = $helper->getDB();
         if (!$db) throw new \Exception($this->getLang('nodb'));
 

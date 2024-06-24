@@ -1,18 +1,18 @@
 <?php
 
 /**
- * German language file for questionaire plugin
+ * German language file for questionnaire plugin
  *
  * @author Andreas Gohr <dokuwiki@cosmocode.de>
  */
 
 $lang['invalidyaml'] = 'Fehlerhaftes YAML in der Fragebogendefinition';
 
-$lang['nosqlite'] = 'Konnte das sqlite Plugin für das questionaire Plugin nicht laden';
+$lang['nosqlite'] = 'Konnte das sqlite Plugin für das questionnaire Plugin nicht laden';
 $lang['nodb'] = 'Die sqlite Datenbank ist nicht verfügbar';
 $lang['saveerror'] = 'Es gab einen Fehler beim Speichern Ihrer Antworten';
 $lang['validationerror'] = 'Bitte beantworten Sie alle Fragen!';
-$lang['noquestionaire'] = 'Kein Fragebogen gefunden';
+$lang['noquestionnaire'] = 'Kein Fragebogen gefunden';
 $lang['forbidden'] = 'Sie haben keine Berechtigung die Fragebogendaten herunterzuladen';
 $lang['success'] = 'Vielen Dank. Ihre Antworten wurden gespeichert.';
 

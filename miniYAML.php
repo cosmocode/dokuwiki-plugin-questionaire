@@ -2,7 +2,7 @@
 /**
  * from https://github.com/atk14/MiniYaml and namespaced for this plugin
  */
-namespace dokuwiki\plugin\questionaire;
+namespace dokuwiki\plugin\questionnaire;
 
 
 /**

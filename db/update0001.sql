@@ -1,4 +1,4 @@
-CREATE TABLE questionaires (
+CREATE TABLE questionnaires (
     page TEXT NOT NULL PRIMARY KEY,
     activated_on TIMESTAMP NOT NULL,
     activated_by TEXT NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE questionaires (
 );
 
 CREATE TABLE answers (
-    page TEXT NOT NULL REFERENCES questionaires(page),
+    page TEXT NOT NULL REFERENCES questionnaires(page),
     question TEXT NOT NULL,
     answer TEXT NOT NULL,
     answered_on TIMESTAMP NOT NULL,

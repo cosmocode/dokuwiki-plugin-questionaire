@@ -3,8 +3,8 @@
 if (!defined('DOKU_INC')) define('DOKU_INC', realpath(__DIR__ . '/../../../') . '/');
 require_once DOKU_INC . 'inc/init.php';
 
-/** @var helper_plugin_questionaire $helper */
-$helper = plugin_load('helper', 'questionaire');
+/** @var helper_plugin_questionnaire $helper */
+$helper = plugin_load('helper', 'questionnaire');
 $ID = getID();
 
 if (!auth_isadmin()) {
@@ -13,11 +13,11 @@ if (!auth_isadmin()) {
     exit;
 }
 
-$quest = $helper->getQuestionaire($ID);
+$quest = $helper->getQuestionnaire($ID);
 
 if (!$quest) {
     http_status(404);
-    echo $helper->getLang('noquestionaire');
+    echo $helper->getLang('noquestionnaire');
     exit;
 }
 
