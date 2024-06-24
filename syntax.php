@@ -63,24 +63,26 @@ class syntax_plugin_questionaire extends SyntaxPlugin
         $user = $INPUT->server->str('REMOTE_USER');
 
         // handle the inputs
-        try {
-            if ($INPUT->has('questionaire')) {
-                $this->validateInput($data, $INPUT->arr('questionaire'));
-                $this->saveInput($data, $INPUT->arr('questionaire'));
-                msg($this->getLang('success'), 1);
-            }
-            if ($INPUT->has('questionaire-admin') && $INFO['isadmin']) {
-                switch ($INPUT->str('questionaire-admin')) {
-                    case 'enable':
-                        $helper->activateQuestionaire($ID, $user);
-                        break;
-                    case 'disable':
-                        $helper->deactivateQuestionaire($ID, $user);
-                        break;
+        if($user) {
+            try {
+                if ($INPUT->has('questionaire')) {
+                    $this->validateInput($data, $INPUT->arr('questionaire'));
+                    $this->saveInput($data, $INPUT->arr('questionaire'));
+                    msg($this->getLang('success'), 1);
                 }
+                if ($INPUT->has('questionaire-admin') && $INFO['isadmin']) {
+                    switch ($INPUT->str('questionaire-admin')) {
+                        case 'enable':
+                            $helper->activateQuestionaire($ID, $user);
+                            break;
+                        case 'disable':
+                            $helper->deactivateQuestionaire($ID, $user);
+                            break;
+                    }
+                }
+            } catch (Exception $e) {
+                msg($e->getMessage(), -1);
             }
-        } catch (Exception $e) {
-            msg($e->getMessage(), -1);
         }
 
         $quest = $helper->getQuestionaire($ID);
@@ -93,7 +95,9 @@ class syntax_plugin_questionaire extends SyntaxPlugin
         } else {
             $renderer->doc .= $this->addSubmitButton($this->createForm($data), $quest)->toHTML();
         }
-        $renderer->doc .= $this->adminPanel($quest)->toHTML();
+        if($INFO['isadmin']) {
+            $renderer->doc .= $this->adminPanel($quest)->toHTML();
+        }
         $renderer->doc .= '</div>';
 
         return true;
